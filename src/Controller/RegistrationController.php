@@ -34,8 +34,8 @@ class RegistrationController extends AbstractController
         }
 
         $existing = $em->getRepository(Registration::class)->findOneBy([
-            'user' => $user,
-            'event' => $event
+            'user_' => $user,
+            'event_' => $event
         ]);
 
         if ($existing) {
@@ -91,8 +91,8 @@ class RegistrationController extends AbstractController
         }
 
         $registration = $em->getRepository(Registration::class)->findOneBy([
-            'user' => $user,
-            'event' => $event
+            'user_' => $user,
+            'event_' => $event
         ]);
 
         if (!$registration) {
@@ -105,7 +105,7 @@ class RegistrationController extends AbstractController
 
         if ($wasSuccess) {
             $nextInLine = $em->getRepository(Registration::class)->findBy(
-                ['event' => $event, 'success' => false],
+                ['event_' => $event, 'success' => false],
                 ['rank' => 'ASC'],
                 1
             );
