@@ -69,4 +69,55 @@ class RegistrationController extends AbstractController
             ]
         ], 201);
     }
+
+    #[Route('/registration/{event_id}', name: 'delete_registration', methods: ['DELETE'])]
+    public function deleteRegistration($event_id, Request $request, EntityManagerInterface $em): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        $userId = $data['user_id'] ?? null;
+
+        if (!$userId) {
+            return new JsonResponse(['error' => 'Hiányzó felhasználó'], 400);
+        }
+
+        $user = $em->getRepository(User::class)->find($userId);
+        if (!$user) {
+            return new JsonResponse(['error' => 'Felhasználó nem található'], 401);
+        }
+
+        $event = $em->getRepository(Event::class)->find($event_id);
+        if (!$event) {
+            return new JsonResponse(['error' => 'Esemény nem található'], 404);
+        }
+
+        $registration = $em->getRepository(Registration::class)->findOneBy([
+            'user' => $user,
+            'event' => $event
+        ]);
+
+        if (!$registration) {
+            return new JsonResponse(['error' => 'Nem regisztráltál erre az eseményre'], 400);
+        }
+
+        $wasSuccess = $registration->isSuccess();
+        $em->remove($registration);
+        $em->flush();
+
+        if ($wasSuccess) {
+            $nextInLine = $em->getRepository(Registration::class)->findBy(
+                ['event' => $event, 'success' => false],
+                ['rank' => 'ASC'],
+                1
+            );
+
+            if (!empty($nextInLine)) {
+                $next = $nextInLine[0];
+                $next->setSuccess(true);
+                $em->persist($next);
+                $em->flush();
+            }
+        }
+
+        return new JsonResponse(['message' => 'Regisztráció sikeresen törölve'], 200);
+    }
 }
