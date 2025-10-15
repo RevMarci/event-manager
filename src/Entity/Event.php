@@ -17,10 +17,10 @@ class Event
     private ?string $name = null;
 
     #[ORM\Column]
-    private ?int $capacity = null;
+    private ?int $capacity = 0;
 
     #[ORM\Column]
-    private ?int $register_counter = null;
+    private ?int $register_counter = 0;
 
     public function getId(): ?int
     {
@@ -59,7 +59,12 @@ class Event
     public function setRegisterCounter(int $register_counter): static
     {
         $this->register_counter = $register_counter;
+        return $this;
+    }
 
+    public function incrementRegisterCounter(): static
+    {
+        $this->register_counter++;
         return $this;
     }
 }
